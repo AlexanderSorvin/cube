@@ -1,18 +1,14 @@
-#ifdef GL_ES
-// Set default precision to medium
-precision mediump int;
-precision mediump float;
-#endif
+#version 330 core
 
-uniform sampler2D texture;
+in vec3 ourColor;
+in vec2 TexCoord;
 
-varying vec2 v_texcoord;
+out vec4 color;
 
-//! [0]
+uniform sampler2D ourTexture1;
+uniform sampler2D ourTexture2;
+
 void main()
 {
-    // Set fragment color from texture
-    gl_FragColor = texture2D(texture, v_texcoord);
+    color = mix(texture(ourTexture1, TexCoord), texture(ourTexture2, TexCoord), 0.2);
 }
-//! [0]
-

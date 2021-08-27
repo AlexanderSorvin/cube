@@ -17,20 +17,17 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 # ===== Создание цели =====
-set(HDRS
-    ${PROJECT_SOURCE_DIR}/include/geometryengine.h
-    ${PROJECT_SOURCE_DIR}/include/mainwidget.h
+file(GLOB_RECURSE HDRS CONFIGURE_DEPENDS
+    "include/*.h"
+    "include/*.hpp"
 )
 
-set(SRCS
-    ${PROJECT_SOURCE_DIR}/src/main.cpp
-    ${PROJECT_SOURCE_DIR}/src/geometryengine.cpp
-    ${PROJECT_SOURCE_DIR}/src/mainwidget.cpp
+file(GLOB_RECURSE SRCS CONFIGURE_DEPENDS
+    "src/*.cpp"
 )
 
-set(RES
-    ${PROJECT_SOURCE_DIR}/shaders.qrc
-    ${PROJECT_SOURCE_DIR}/textures.qrc
+file(GLOB_RECURSE RES CONFIGURE_DEPENDS
+    "*.qrc"
 )
 
 add_executable(${PROJECT_NAME} ${SRCS} ${HDRS} ${RES})
