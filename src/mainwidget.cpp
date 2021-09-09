@@ -1,4 +1,5 @@
 #include "mainwidget.h"
+#include "Camera.hpp"
 
 #include <QMouseEvent>
 
@@ -17,11 +18,46 @@ MainWidget::~MainWidget()
 
 void MainWidget::mousePressEvent(QMouseEvent *e)
 {
+    if (e->button() == Qt::MiddleButton) {
+        _camera.startRotateEvent({float(e->pos().y()), -float(e->pos().x()), 0});
+    }
 }
 
 void MainWidget::mouseReleaseEvent(QMouseEvent *e)
 {
+    if (e->button() == Qt::MiddleButton) {
+        _camera.stopRotateEvent({float(e->pos().y()), -float(e->pos().x()), 0});
+    }
+}
 
+//{float(e->pos().x()), float(e->pos().y()), 0}
+
+void MainWidget::mouseMoveEvent(QMouseEvent *e)
+{
+    _camera.rotateEvent({float(e->pos().y()), -float(e->pos().x()), 0});
+}
+
+void MainWidget::keyPressEvent(QKeyEvent *event)
+{
+    switch (event->key())
+    {
+    case Qt::Key_W: _camera.startMoveEvent({0, 0, 1}); return;
+    case Qt::Key_S: _camera.startMoveEvent({0, 0, -1}); return;
+    case Qt::Key_A: _camera.startMoveEvent({1, 0, 0}); return;
+    case Qt::Key_D: _camera.startMoveEvent({-1, 0, 0}); return;
+    }
+    
+}
+
+void MainWidget::keyReleaseEvent(QKeyEvent *event)
+{
+    switch (event->key())
+    {
+    case Qt::Key_W: _camera.stopMoveEvent({0, 0, 1}); return;
+    case Qt::Key_S: _camera.stopMoveEvent({0, 0, -1}); return;
+    case Qt::Key_A: _camera.stopMoveEvent({1, 0, 0}); return;
+    case Qt::Key_D: _camera.stopMoveEvent({-1, 0, 0}); return;
+    }
 }
 
 void MainWidget::timerEvent(QTimerEvent *)
@@ -81,19 +117,54 @@ void MainWidget::initTextures()
 
 void MainWidget::resizeGL(int w, int h)
 {
+    glViewport(0, 0, w, h);
 }
 
 void MainWidget::paintGL()
 {
+    _camera.update();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    QMatrix4x4 model;
+    model.rotate(45, 0.5f, 1.0f, 0.0f);
+
+    QMatrix4x4 view = _camera.lookAt();
+    //qDebug() << view;
+
+    QMatrix4x4 projection;
+    projection.perspective(45.0f, width() / height(), 0.1f, 100.0f);
 
     GLfloat vertices[] = {
         // Позиции          // Цвета             // Текстурные координаты
-        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,  // Нижний левый
-        0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // Нижний правый
-        0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // Верхний правый
-        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Верхний левый
+        -0.5f, -0.5f, 0.5f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,  // Нижний левый
+        0.5f, -0.5f, 0.5f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // Нижний правый
+        0.5f,  0.5f, 0.5f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // Верхний правый
+        -0.5f,  0.5f, 0.5f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Верхний левый
+
+        0.5f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,  // Нижний левый
+        0.5f, 0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // Нижний правый
+        0.5f, 0.5f,  0.5f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // Верхний правый
+        0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Верхний левый
+
+        -0.5f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,  // Нижний левый
+        0.5f, -0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // Нижний правый
+        0.5f, -0.5f,  0.5f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // Верхний правый
+        -0.5f, -0.5f, 0.5f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Верхний левый
+
+        -0.5f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,  // Нижний левый
+        0.5f, -0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // Нижний правый
+        0.5f,  0.5f, -0.5f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // Верхний правый
+        -0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Верхний левый
+
+        -0.5f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,  // Нижний левый
+        -0.5f, 0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // Нижний правый
+        -0.5f, 0.5f,  0.5f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // Верхний правый
+        -0.5f, -0.5f,  0.5f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Верхний левый
+
+        -0.5f, 0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,  // Нижний левый
+        0.5f, 0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // Нижний правый
+        0.5f, 0.5f,  0.5f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // Верхний правый
+        -0.5f, 0.5f, 0.5f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Верхний левый
     };
 
     _vbo.bind();
@@ -105,7 +176,6 @@ void MainWidget::paintGL()
         if (attr >= 0) {
             _program.enableAttributeArray(attr);
             glVertexAttribPointer(attr, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void *)(sizeof(GLfloat) * 0));
-            qDebug() << 1 << attr << glGetError();
         }
     }
 
@@ -114,7 +184,6 @@ void MainWidget::paintGL()
         if (attr >= 0) {
             _program.enableAttributeArray(attr);
             glVertexAttribPointer(attr, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void *)(sizeof(GLfloat) * 3));
-            qDebug() << 2 << attr << glGetError();
         }
     }
 
@@ -123,7 +192,6 @@ void MainWidget::paintGL()
         if (attr >= 0) {
             _program.enableAttributeArray(attr);
             glVertexAttribPointer(attr, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void *)(sizeof(GLfloat) * 6));
-            qDebug() << 3 << attr << glGetError();
         }
     }
 
@@ -131,22 +199,21 @@ void MainWidget::paintGL()
     _vbo.release();
 
     _program.bind();
-    //glUniform2fv(program->uniformLocation("uBlur"), KERNEL_QUARTER, blur1);
+    _program.setUniformValue("model", model);
+    _program.setUniformValue("view", view);
+    _program.setUniformValue("projection", projection);
     _program.setUniformValue(_program.uniformLocation("ourTexture1"), 0);
     _program.setUniformValue(_program.uniformLocation("ourTexture2"), 1);
-    qDebug() << 4 << glGetError();
     _texture1->bind(0);
     _texture2->bind(1);
 
     _vbo.bind();
     _vao.bind();
-    //glViewport(0, 0, outputTex->width, outputTex->height);
 
-    //glDisable(GL_BLEND);
-    glDrawArrays(GL_QUADS, 0, 4);
-    //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    // glDrawElements(GL_QUADS, 4, GL_FLOAT, 0);
-    qDebug() << 10 << glGetError();
+    glCullFace(GL_BACK);
+    glDrawArrays(GL_QUADS, 0, 12);
+    glCullFace(GL_FRONT);
+    glDrawArrays(GL_QUADS, 12, 12);
 
     _vbo.release();
     _vao.release();

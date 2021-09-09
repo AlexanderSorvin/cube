@@ -11,6 +11,8 @@
 #include <QOpenGLBuffer>
 #include <QOpenGLVertexArrayObject>
 
+#include "Camera.hpp"
+
 class MainWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
     Q_OBJECT
@@ -21,6 +23,8 @@ public:
 protected:
     void mousePressEvent(QMouseEvent *e) override;
     void mouseReleaseEvent(QMouseEvent *e) override;
+    void mouseMoveEvent(QMouseEvent *e) override;
+    
     void timerEvent(QTimerEvent *e) override;
 
     void initializeGL() override;
@@ -30,6 +34,9 @@ protected:
     void initShaders();
     void initTextures();
 
+    void keyPressEvent(QKeyEvent *event) override;
+    void keyReleaseEvent(QKeyEvent *event) override;
+
 private:
     QBasicTimer _timer;
     QOpenGLShaderProgram _program;
@@ -38,4 +45,6 @@ private:
 
     QOpenGLTexture *_texture1 = nullptr;
     QOpenGLTexture *_texture2 = nullptr;
+
+    Camera _camera;
 };
